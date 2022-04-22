@@ -1,0 +1,90 @@
+﻿@page "/employee"
+@page "/employee/{Id:int}"
+
+@using Data
+@using System.Net.Http
+@using System.Net.Http.Json
+@inject HttpClient Http
+@inject NavigationManager ElMarinero
+<h3>EmployeeForm</h3>
+
+<EditForm Model="_employee">
+    <div class="container-fluid">
+        <div class="form-group row mb-1">
+            <label class=col-sm-3>Nombre</label>
+            <div class="col-sm-9">
+                <InputText class="form-control" @bind-Value=@_employee.Name></InputText>
+            </div>
+        </div>
+        <div class="form-group row mb-1">
+            <label class=col-sm-3>Apellido</label>
+            <div class="col-sm-9">
+                <InputText class="form-control" @bind-Value=@_employee.LastName></InputText>
+            </div>
+        </div>
+        <div class="form-group row mb-1">
+            <label class=col-sm-3>Tipo de documento</label>
+            <div class="col-sm-9">
+                <InputText class="form-control" @bind-Value=@_employee.TypeDocument></InputText>
+            </div>
+        </div>
+        <div class="form-group row mb-1">
+            <label class=col-sm-3>Numero de documento</label>
+            <div class="col-sm-9">
+                <InputText class="form-control" @bind-Value=@_employee.DocumentNumber></InputText>
+            </div>
+        </div>
+        <div class="form-group row mb-1">
+            <label class=col-sm-3>Fecha de Nacimiento</label>
+            <div class="col-sm-9">
+                <InputDate class="form-control" @bind-Value=@_employee.DateBirth></InputDate>
+            </div>
+        </div>
+        <div class="form-group row mb-1">
+            <label class=col-sm-3>Area</label>
+            <div class="col-sm-9">
+                <InputText class="form-control" @bind-Value=@_employee.Area></InputText>
+            </div>
+        </div>
+        <div class="form-group row mb-1">
+            <div class="col-sm-12">
+                <button class="btn btn-primary" @onclick="Save">Guardar</button>
+            </div>
+        </div>
+    </div>
+</EditForm>
+
+
+@code {
+    [Parameter]
+    public int Id { get; set; }
+
+    Employee _employee = new Employee();
+    Respuesta<object> _respuesta = new Respuesta<object>();
+    Respuesta<Employee> _respuestaEmployee = new Respuesta<Employee>();
+    public string url = "/api/Employee";
+
+    private async Task Save()
+    {
+        if(Id != 0)
+        {
+            var response= await Http.PutAsJsonAsync<Employee>(url, _employee);
+            _respuesta = response.Content.ReadFromJsonAsync<Respuesta<object>>().Result;
+        }
+        else
+        {            
+            var response= await Http.PostAsJsonAsync<Employee>(url, _employee);
+            _respuesta = response.Content.ReadFromJsonAsync<Respuesta<object>>().Result;
+        }
+        ElMarinero.NavigateTo("/employees");
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        if (Id != 0)
+        {
+            _respuestaEmployee = await Http.GetFromJsonAsync<Respuesta<Employee>>(url+"/"+Id);
+            _employee = _respuestaEmployee.Data;
+        }
+    }
+}
